@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  localstack:
+    container_name: sample_localstack
+    image: localstack/localstack:latest
+    ports:
+      - "44566:4566"
+    volumes:
+      - ./:/docker-entrypoint-initaws.d
+
+volumes:
+  data-volume:
