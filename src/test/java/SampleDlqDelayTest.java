@@ -66,6 +66,11 @@ public class SampleDlqDelayTest {
                     .consumeNextWith(e -> assertEquals("sample_message", e))
                     .verifyComplete();
         }
+        // NOTE: Need to query queue one more time to push the message to DLQ
+        StepVerifier.create(consumeMessage(QUEUE_URL))
+                    .thenAwait(Duration.ofSeconds(4))
+                    .consumeNextWith(e -> assertEquals(0, e.messages().size()))
+                    .verifyComplete();
         // Verify that the message is pushed to SQS DLQ
         StepVerifier.create(consumeMessage(DLQ_URL))
                 .thenAwait(Duration.ofSeconds(4))
@@ -85,7 +90,7 @@ public class SampleDlqDelayTest {
 
     private Mono<ReceiveMessageResponse> consumeMessage(String queueUrl) {
         return Mono.fromFuture(() -> sqsAsyncClient.receiveMessage(
-                ReceiveMessageRequest.builder().maxNumberOfMessages(1).queueUrl(queueUrl).build()))
+                ReceiveMessageRequest.builder().queueUrl(queueUrl).build()))
                 .publishOn(Schedulers.boundedElastic());
     }
 
